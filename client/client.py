@@ -9,18 +9,45 @@ class Client:
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
             print(f"Attempting to connect to {host}:{port}...")
+            print("\nNetwork Diagnostics:")
+            print(f"1. Target IP: {host}")
+            print(f"2. Target Port: {port}")
+            
+            # Try to get local IP
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            try:
+                s.connect(('8.8.8.8', 80))
+                local_ip = s.getsockname()[0]
+            except Exception:
+                local_ip = "Unknown"
+            finally:
+                s.close()
+            
+            print(f"3. Your IP: {local_ip}")
+            print("\nConnection Status:")
+            
             self.server.connect((host, port))
-            print("Successfully connected to server!")
+            print("✅ Successfully connected to server!")
         except ConnectionRefusedError:
-            print(f"Error: Could not connect to server at {host}:{port}")
-            print("Please check that:")
-            print("1. The server is running")
-            print("2. The IP address is correct")
-            print("3. Both computers are on the same network")
-            print("4. Port 8001 is not blocked by a firewall")
+            print("❌ Connection refused. Please check:")
+            print("   - Is the server running?")
+            print("   - Are you on the same network?")
+            print("   - Is the IP address correct?")
+            raise
+        except socket.gaierror:
+            print("❌ Invalid IP address. Please check the IP address format.")
+            raise
+        except OSError as e:
+            if "No route to host" in str(e):
+                print("❌ No route to host. Please check:")
+                print("   - Are both computers on the same network?")
+                print("   - Is the IP address correct?")
+                print("   - Try pinging the server IP to test connectivity")
+            else:
+                print(f"❌ Connection error: {str(e)}")
             raise
         except Exception as e:
-            print(f"Error connecting to server: {str(e)}")
+            print(f"❌ Unexpected error: {str(e)}")
             raise
 
         self.closed = False
