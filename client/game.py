@@ -132,8 +132,16 @@ class MathGame:
 
 if __name__ == "__main__":
     import sys
-    server_ip = "127.0.0.1"  # Default to localhost
-    if len(sys.argv) > 1:
-        server_ip = sys.argv[1]
+    if len(sys.argv) != 2:
+        print("Usage: python game.py <server_ip>")
+        print("Example: python game.py 192.168.1.10")
+        print("\nTo connect to the server:")
+        print("1. Ask your friend for their IP address")
+        print("2. Make sure you're on the same network (same WiFi)")
+        print("3. Run this command with their IP address")
+        sys.exit(1)
+    
+    server_ip = sys.argv[1]
+    print(f"Connecting to server at {server_ip}...")
     game = MathGame(Client(host=server_ip))
     game.run()

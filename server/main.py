@@ -159,5 +159,24 @@ class Server:
             thread.start()
 
 if __name__ == "__main__":
+    import socket
+    # Get the local IP address
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        # Doesn't even have to be reachable
+        s.connect(('10.255.255.255', 1))
+        IP = s.getsockname()[0]
+    except Exception:
+        IP = '127.0.0.1'
+    finally:
+        s.close()
+    
+    print(f"Server starting on IP: {IP}, Port: 8001")
+    print("Clients can connect using this IP address")
+    print("If clients cannot connect, check that:")
+    print("1. The port 8001 is not blocked by a firewall")
+    print("2. Both computers are on the same network")
+    print("3. The IP address is accessible from the client's network")
+    
     server = Server()
     server.receive()

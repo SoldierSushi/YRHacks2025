@@ -7,7 +7,21 @@ class Client:
     def __init__(self, host="127.0.0.1", port=8001):
         self.nickname = None
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server.connect((host, port))
+        try:
+            print(f"Attempting to connect to {host}:{port}...")
+            self.server.connect((host, port))
+            print("Successfully connected to server!")
+        except ConnectionRefusedError:
+            print(f"Error: Could not connect to server at {host}:{port}")
+            print("Please check that:")
+            print("1. The server is running")
+            print("2. The IP address is correct")
+            print("3. Both computers are on the same network")
+            print("4. Port 8001 is not blocked by a firewall")
+            raise
+        except Exception as e:
+            print(f"Error connecting to server: {str(e)}")
+            raise
 
         self.closed = False
         self.started = False
