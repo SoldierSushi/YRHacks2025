@@ -131,5 +131,9 @@ class MathGame:
         pygame.quit()
 
 if __name__ == "__main__":
-    game = MathGame(Client())
+    import sys
+    server_ip = "127.0.0.1"  # Default to localhost
+    if len(sys.argv) > 1:
+        server_ip = sys.argv[1]
+    game = MathGame(Client(host=server_ip))
     game.run()
