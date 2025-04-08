@@ -4,12 +4,10 @@ import random
 import math
 import time # Might be needed by menu elements later, good to keep
 
-# --- Import your game files ---
+# --- Import game files ---
 try:
-    # Make sure your snake game file is named 'snake.py'
-    import airHockey
     import snake
-    import slope
+    import airHockey
     # You would import other game modules here later
     # import ice_hockey_game
     # import test_game
@@ -17,7 +15,7 @@ try:
     GAME_MODULES = { # Map game IDs to their run functions
         'game_1': airHockey.run_hockey, # Placeholder for Ice Hockey (e.g., ice_hockey_game.run_hockey)
         'game_2': snake.run_snake, # Reference to the function in snake.py
-        'game_3': slope.run_slope, # Placeholder for Test Game (e.g., test_game.run_test)
+        'game_3': None, # Placeholder for Test Game (e.g., test_game.run_test)
     }
     print("Game modules imported successfully.")
 except ImportError as e:
@@ -88,7 +86,7 @@ main_option_rects = []
 game_panels_data = [
     {'id': 'game_1', 'name': 'ice hockey'},
     {'id': 'game_2', 'name': 'snake'},
-    {'id': 'game_3', 'name': 'slope'},
+    {'id': 'game_3', 'name': 'test'},
 ]
 game_panels = [] # Will store dicts with calculated rects
 panel_width = 250

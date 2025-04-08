@@ -7,7 +7,7 @@ hands = mp_hands.Hands(min_detection_confidence=0.7, min_tracking_confidence=0.7
 mp_drawing = mp.solutions.drawing_utils
 
 # Open the webcam stream frfr ts to see fr
-stream = cv2.VideoCapture(2) # uses second camera on device 
+stream = cv2.VideoCapture(1) # uses second camera on device 
 
 if not stream.isOpened():
     print("No Stream")
