@@ -7,6 +7,7 @@ import time # Might be needed by menu elements later, good to keep
 # --- Import your game files ---
 try:
     # Make sure your snake game file is named 'snake.py'
+    import airHockey
     import snake
     import slope
     # You would import other game modules here later
@@ -14,7 +15,7 @@ try:
     # import test_game
 
     GAME_MODULES = { # Map game IDs to their run functions
-        'game_1': None, # Placeholder for Ice Hockey (e.g., ice_hockey_game.run_hockey)
+        'game_1': airHockey.run_hockey, # Placeholder for Ice Hockey (e.g., ice_hockey_game.run_hockey)
         'game_2': snake.run_snake, # Reference to the function in snake.py
         'game_3': slope.run_slope, # Placeholder for Test Game (e.g., test_game.run_test)
     }
