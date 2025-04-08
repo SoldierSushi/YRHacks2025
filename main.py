@@ -50,6 +50,9 @@ while(True):
             # Draw a bounding box around the hand
             cv2.rectangle(frame, (int(x_min), int(y_min)), (int(x_max), int(y_max)), (0, 255, 0), 2)
 
+            top_left_coordinates = (int(x_min), int(y_min))
+            cv2.putText(frame, f"Top Left: {top_left_coordinates}", (int(x_min), int(y_min)-10), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
+
     # Show the frame with the bounding boxes
     cv2.imshow("Pong", frame)
 
@@ -60,3 +63,7 @@ while(True):
 # Release the video capture and close all OpenCV windows
 stream.release()
 cv2.destroyAllWindows()
+
+# find hand coordinate
+# move paddel to coordinate
+# create entire game
