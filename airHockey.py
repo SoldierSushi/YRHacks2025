@@ -19,7 +19,7 @@ hands = mp_hands.Hands(max_num_hands=2, min_detection_confidence=0.7)
 mp_draw = mp.solutions.drawing_utils
 
 # Webcam
-cap = cv2.VideoCapture(2)
+cap = cv2.VideoCapture(1)
 
 # Paddle properties
 PADDLE_WIDTH = 90
