@@ -1,69 +1,140 @@
+import pygame
 import cv2
+import numpy as np
 import mediapipe as mp
 
-# Initialize MediaPipe hand detector
+# Initialize Pygame
+pygame.init()
+
+# Set up the display
+WIDTH = 800
+HEIGHT = 600
+screen = pygame.display.set_mode([WIDTH, HEIGHT])
+pygame.display.set_caption("Hand-Controlled Pong")
+
+# Initialize hand tracking
 mp_hands = mp.solutions.hands
-hands = mp_hands.Hands(min_detection_confidence=0.7, min_tracking_confidence=0.7)
-mp_drawing = mp.solutions.drawing_utils
+hands = mp_hands.Hands(max_num_hands=2, min_detection_confidence=0.7)
+mp_draw = mp.solutions.drawing_utils
 
-# Open the webcam stream
-stream = cv2.VideoCapture(0) # uses second camera on device 
+# Initialize webcam
+cap = cv2.VideoCapture(0)
 
-if not stream.isOpened():
-    print("No Stream")
-    exit()
+# Define paddle properties
+PADDLE_WIDTH = 15
+PADDLE_HEIGHT = 90
+left_paddle_y = HEIGHT//2 - PADDLE_HEIGHT//2
+right_paddle_y = HEIGHT//2 - PADDLE_HEIGHT//2
+paddle_speed = 7
 
-while(True):
-    ret, frame = stream.read()
-    frame = cv2.flip(frame, 1) 
+# Define ball properties
+ball_x = WIDTH//2
+ball_y = HEIGHT//2
+ball_size = 15
+ball_speed_x = 7
+ball_speed_y = 7
 
-    if not ret:
-        print("No More Stream")
+# Game variables
+left_score = 0
+right_score = 0
+running = True
+
+while running:
+    # Handle Pygame events
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+    
+    # Read webcam
+    success, image = cap.read()
+    if not success:
+        continue
+
+    # Flip the image horizontally for a later selfie-view display
+    image = cv2.flip(image, 1)
+    
+    # Convert the BGR image to RGB
+    image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    
+    # Process the image and detect hands
+    results = hands.process(image_rgb)
+    
+    # If hands are detected, update paddle positions
+    if results.multi_hand_landmarks:
+        for i, hand_landmarks in enumerate(results.multi_hand_landmarks):
+            # Draw hand landmarks on the image
+            mp_draw.draw_landmarks(image, hand_landmarks, mp_hands.HAND_CONNECTIONS)
+            
+            # Get the y position of the index finger tip
+            index_y = hand_landmarks.landmark[8].y
+            
+            # Determine which hand controls which paddle based on x position
+            index_x = hand_landmarks.landmark[8].x
+            if index_x < 0.5:  # Left side of screen
+                left_paddle_y = int(index_y * HEIGHT)
+                left_paddle_y = max(0, min(left_paddle_y, HEIGHT - PADDLE_HEIGHT))
+            else:  # Right side of screen
+                right_paddle_y = int(index_y * HEIGHT)
+                right_paddle_y = max(0, min(right_paddle_y, HEIGHT - PADDLE_HEIGHT))
+
+    # Update ball position
+    ball_x += ball_speed_x
+    ball_y += ball_speed_y
+
+    # Ball collision with top and bottom
+    if ball_y <= 0 or ball_y >= HEIGHT - ball_size:
+        ball_speed_y *= -1
+
+    # Ball collision with paddles
+    left_paddle_rect = pygame.Rect(50, left_paddle_y, PADDLE_WIDTH, PADDLE_HEIGHT)
+    right_paddle_rect = pygame.Rect(WIDTH - 50 - PADDLE_WIDTH, right_paddle_y, PADDLE_WIDTH, PADDLE_HEIGHT)
+    ball_rect = pygame.Rect(ball_x, ball_y, ball_size, ball_size)
+    
+    if left_paddle_rect.colliderect(ball_rect) or right_paddle_rect.colliderect(ball_rect):
+        ball_speed_x *= -1
+        if left_paddle_rect.colliderect(ball_rect):
+            left_score += 1
+        else:
+            right_score += 1
+
+    # Ball out of bounds
+    if ball_x >= WIDTH - ball_size:  # Right player missed
+        ball_x = WIDTH//2
+        ball_y = HEIGHT//2
+        left_score += 1
+    elif ball_x <= 0:  # Left player missed
+        ball_x = WIDTH//2
+        ball_y = HEIGHT//2
+        right_score += 1
+
+    # Fill the background with black
+    screen.fill((0, 0, 0))
+
+    # Draw paddles (white)
+    pygame.draw.rect(screen, (255, 255, 255), left_paddle_rect)
+    pygame.draw.rect(screen, (255, 255, 255), right_paddle_rect)
+
+    # Draw ball (white)
+    pygame.draw.rect(screen, (255, 255, 255), ball_rect)
+
+    # Display scores
+    font = pygame.font.Font(None, 36)
+    left_score_text = font.render(f"Player 1: {left_score}", True, (255, 255, 255))
+    right_score_text = font.render(f"Player 2: {right_score}", True, (255, 255, 255))
+    screen.blit(left_score_text, (WIDTH//4 - 70, 20))
+    screen.blit(right_score_text, (3*WIDTH//4 - 70, 20))
+
+    pygame.display.flip()
+
+    # Display the webcam feed
+    cv2.imshow('Hand Tracking', image)
+    if cv2.waitKey(1) & 0xFF == 27:  # Press ESC to quit
         break
 
-    # Convert the frame to RGB (MediaPipe requires RGB images)
-    rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    # Control game speed
+    pygame.time.Clock().tick(60)
 
-    # Process the frame and detect hands
-    result = hands.process(rgb_frame)
-
-    # If hands are detected
-    if result.multi_hand_landmarks:
-        for hand_landmarks in result.multi_hand_landmarks:
-            # Draw the landmarks on the hand
-            mp_drawing.draw_landmarks(frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
-
-            # Calculate bounding box for hand
-            x_min, y_min = 1, 1
-            x_max, y_max = 0, 0
-
-            for landmark in hand_landmarks.landmark:
-                x_min = min(x_min, landmark.x) # we can use these variables to move the pong paddles around the screen
-                y_min = min(y_min, landmark.y)
-                x_max = max(x_max, landmark.x)
-                y_max = max(y_max, landmark.y)
-
-            # Convert normalized coordinates to pixel values
-            h, w, _ = frame.shape
-            x_min, y_min, x_max, y_max = (x_min * w, y_min * h, x_max * w, y_max * h)
-
-            # Draw a bounding box around the hand
-            cv2.rectangle(frame, (int(x_min), int(y_min)), (int(x_max), int(y_max)), (0, 255, 0), 2)
-
-            top_left_coordinates = (int(x_min), int(y_min))
-            cv2.putText(frame, f"Top Left: {top_left_coordinates}", (int(x_min), int(y_min)-10), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
-
-    # Show the frame with the bounding boxes
-    cv2.imshow("Pong", frame)
-
-    # Exit loop when 'q' is pressed
-    if cv2.waitKey(1) == ord('q'):
-        break
-
-# Release the video capture and close all OpenCV windows
-stream.release()
+# Cleanup
+cap.release()
 cv2.destroyAllWindows()
-
-# find hand coordinate
-# move paddel to coordinate
-# create entire game
+pygame.quit()
