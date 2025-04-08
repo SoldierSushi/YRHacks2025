@@ -86,7 +86,7 @@ main_option_rects = []
 
 # --- Game Panel Data ---
 game_panels_data = [
-    {'id': 'game_1', 'name': 'ice hockey'},
+    {'id': 'game_1', 'name': 'air hockey'},
     {'id': 'game_2', 'name': 'snake'},
     {'id': 'game_3', 'name': 'slope'},
 ]
